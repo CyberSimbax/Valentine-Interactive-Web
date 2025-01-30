@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Day Special</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Dancing Script', cursive;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .heart-gif {
+            width: 200px;
+            animation: heartbeat 1.2s infinite;
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Great Vibes', cursive;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Dancing Script', cursive;
+        }
+
+        .btn-yes {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-no {
+            background-color: #f44336;
+            color: white;
+            position: relative;
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 2rem;
+            animation: float 6s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .heart-gif {
+                width: 150px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 1.2rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.gifer.com/origin/f3/f3a737f4a5d163f0f49db7a7b5d8e1f1_w200.gif" class="heart-gif" alt="Beating Heart">
+        <h1>Will you be my Valentine? 💝</h1>
+        <div class="buttons">
+            <button class="btn btn-yes" onclick="handleYes()">Yes! 😍</button>
+            <button class="btn btn-no" onmouseover="moveButton()" ontouchstart="moveButton()">No 😢</button>
+        </div>
+    </div>
+
+    <audio id="soundEffect" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="backgroundMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-romantic-chimes-278.mp3"></audio>
+
+    <script>
+        // Cookie system
+        document.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('valentineAnswer')) {
+                document.querySelector('.buttons').classList.add('hidden');
+                document.querySelector('h1').innerHTML = "I knew you'd say yes! 💖<br>Let's celebrate! 🥂";
+            }
+            // Start music on first interaction
+            document.body.addEventListener('click', () => {
+                document.getElementById('backgroundMusic').play();
+            }, { once: true });
+        });
+
+        // Confetti animation
+        function handleYes() {
+            localStorage.setItem('valentineAnswer', 'yes');
+            document.getElementById('soundEffect').play();
+            
+            // Confetti effect
+            const count = 200;
+            const defaults = {
+                origin: { y: 0.7 }
+            };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+
+            document.querySelector('.buttons').classList.add('hidden');
+            document.querySelector('h1').innerHTML = "Yay! 💖 You've made me the happiest person! 🥰";
+        }
+
+        // Send response to Google Sheets
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyrAeqqxDq7yZRAqvHoBsUEsdWIVLl69OHSN2wsEnqSjpQfhxCUpW0B9MRYt2hbhMS4/exec';
+        const response = await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                answer: 'yes',
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            })
+        });
+
+        // Moving button
+        function moveButton() {
+            const btnNo = document.querySelector('.btn-no');
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+            
+            const maxX = containerRect.width - btnNo.offsetWidth;
+            const maxY = containerRect.height - btnNo.offsetHeight;
+            
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+            
+            btnNo.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            
+            setTimeout(() => {
+                btnNo.style.transform = 'translate(0, 0)';
+            }, 1000);
+        }
+
+        // Floating hearts
+        function createFloatingHeart() {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.className = 'floating-heart';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 4 + 's';
+            document.body.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 6000);
+        }
+
+        // Create floating hearts periodically
+        setInterval(createFloatingHeart, 1500);
+
+        // Click interaction
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('.btn')) return;
+            
+            // Create click hearts
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.style.position = 'absolute';
+            heart.style.left = e.pageX + 'px';
+            heart.style.top = e.pageY + 'px';
+            heart.style.fontSize = '2rem';
+            heart.style.animation = 'clickHeart 1s ease-out';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => heart.remove(), 1000);
+        });
+    </script>
+</body>
+</html>
